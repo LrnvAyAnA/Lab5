@@ -1,0 +1,19 @@
+ name: Docker CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Data Manager
+        run: docker build -t myapp-data-manager ./data_manager
+
+      - name: Build Recognition Service
+        run: docker build -t myapp-recognition-service ./recognition_service
