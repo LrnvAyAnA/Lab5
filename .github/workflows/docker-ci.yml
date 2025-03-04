@@ -25,3 +25,9 @@ jobs:
 
       - name: Build Recognition Service Image
         run: docker build -t myapp-recognition-service ./recognition_service
+
+      - name: Install dependencies
+        run: pip install pytest
+
+      - name: Run tests
+        run: pytest tests/
