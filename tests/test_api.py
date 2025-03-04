@@ -26,7 +26,7 @@ import requests
 #     assert "processed" in response.json()["status"]
 
 
-BASE_URL = "http://lab5-data_manager-1:5000"  # Адрес сервиса
+BASE_URL = "http://localhost:5000"  # Адрес сервиса
 
 def test_upload_image():
     response = requests.post(f"{BASE_URL}/images", json={"path": "images/image1.png"})
