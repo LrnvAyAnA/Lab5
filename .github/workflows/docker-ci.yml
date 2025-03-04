@@ -54,6 +54,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      - name: Install Docker Compose
+        run: |
+          # Устанавливаем docker-compose
+          sudo curl -L "https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose --version  # Проверим версию docker-compose
+
       - name: Build Data Manager Image
         run: docker build -t myapp-data-manager ./data_manager
 
@@ -71,7 +78,6 @@ jobs:
       # Ожидание, пока сервисы не будут доступны
       - name: Wait for services to be ready
         run: |
-          # Ожидаем, пока контейнеры будут доступны
           echo "Waiting for data_manager service to be available..."
           until curl --silent --fail http://localhost:5000; do
             echo "Waiting..."
