@@ -1,3 +1,37 @@
+# name: Docker CI
+
+# on:
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+#     branches:
+#       - main
+#   workflow_dispatch: #
+
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+
+#       - name: Set up Docker Buildx
+#         uses: docker/setup-buildx-action@v2
+
+#       - name: Build Data Manager Image
+#         run: docker build -t myapp-data-manager ./data_manager
+
+#       - name: Build Recognition Service Image
+#         run: docker build -t myapp-recognition-service ./recognition_service
+
+#       - name: Install dependencies
+#         run: pip install pytest
+
+#       - name: Run tests
+#         run: pytest tests/
+
 name: Docker CI
 
 on:
@@ -7,11 +41,25 @@ on:
   pull_request:
     branches:
       - main
-  workflow_dispatch: #
+  workflow_dispatch: # Позволяет запускать вручную
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    services:
+      # Настроим сервисы Docker для работы с контейнерами
+      data_manager:
+        image: myapp-data-manager
+        ports:
+          - 5000:5000 # Пробросим порт 5000 для сервиса data_manager
+        options: --health-cmd "curl --silent --fail http://localhost:5000 || exit 1" --health-interval 10s --health-retries 3 --health-timeout 5s
+
+      recognition_service:
+        image: myapp-recognition-service
+        ports:
+          - 5001:5001 # Пробросим порт 5001 для recognition_service
+        options: --health-cmd "curl --silent --fail http://localhost:5001 || exit 1" --health-interval 10s --health-retries 3 --health-timeout 5s
 
     steps:
       - name: Checkout code
@@ -29,5 +77,24 @@ jobs:
       - name: Install dependencies
         run: pip install pytest
 
+      # Ожидаем, пока оба контейнера станут доступными
+      - name: Wait for services to be ready
+        run: |
+          echo "Waiting for data_manager service to be available..."
+          until curl --silent --fail http://localhost:5000; do
+            echo "Waiting..."
+            sleep 5
+          done
+          echo "Data Manager is available!"
+
+          echo "Waiting for recognition_service to be available..."
+          until curl --silent --fail http://localhost:5001; do
+            echo "Waiting..."
+            sleep 5
+          done
+          echo "Recognition Service is available!"
+
       - name: Run tests
-        run: pytest tests/
+        run: |
+          echo "Running tests..."
+          pytest tests/
