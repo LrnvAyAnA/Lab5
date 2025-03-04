@@ -92,6 +92,12 @@ jobs:
           done
           echo "Recognition Service is available!"
 
+      - name: Show logs for Data Manager
+        run: docker-compose logs data_manager
+
+      - name: Show logs for Recognition Service
+        run: docker-compose logs recognition_service
+
       - name: Run tests
         run: |
           echo "Running tests..."
