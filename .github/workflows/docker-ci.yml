@@ -47,20 +47,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    services:
-      # Настроим сервисы Docker для работы с контейнерами
-      data_manager:
-        image: myapp-data-manager
-        ports:
-          - 5000:5000 # Пробросим порт 5000 для сервиса data_manager
-        options: --health-cmd "curl --silent --fail http://localhost:5000 || exit 1" --health-interval 10s --health-retries 3 --health-timeout 5s
-
-      recognition_service:
-        image: myapp-recognition-service
-        ports:
-          - 5001:5001 # Пробросим порт 5001 для recognition_service
-        options: --health-cmd "curl --silent --fail http://localhost:5001 || exit 1" --health-interval 10s --health-retries 3 --health-timeout 5s
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -77,9 +63,15 @@ jobs:
       - name: Install dependencies
         run: pip install pytest
 
-      # Ожидаем, пока оба контейнера станут доступными
+      # Запуск docker-compose
+      - name: Set up Docker Compose
+        run: |
+          docker-compose -f docker-compose.yml up -d # Запуск контейнеров в фоновом режиме
+
+      # Ожидание, пока сервисы не будут доступны
       - name: Wait for services to be ready
         run: |
+          # Ожидаем, пока контейнеры будут доступны
           echo "Waiting for data_manager service to be available..."
           until curl --silent --fail http://localhost:5000; do
             echo "Waiting..."
